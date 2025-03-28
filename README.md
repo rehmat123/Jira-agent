@@ -1,6 +1,7 @@
 # JIRA AI Agent
 
 JIRA AI Agent is a comprehensive solution designed to automate the creation of JIRA tickets using OpenAI's language model. By providing a simple prompt, the agent generates a ticket title, summary, estimates priority, and assigns story points. It intelligently identifies the appropriate JIRA board and sprint, adding the ticket to the current sprint seamlessly. This streamlines the ticket creation process, enhancing efficiency and reducing manual effort.
+
 ![alt text](image.png)
 
 
