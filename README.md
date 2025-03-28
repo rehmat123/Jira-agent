@@ -54,7 +54,7 @@ Navigate to both the frontend and backend directories and install the required p
 Create a `.env` file in root level directories. Use the `.env.example` files as templates to configure your environment variables.
 
 ## Running the Project
-### Start the Backend Server
+### Start the Backend and frontend Server Concurently
 In the root level, run:
 ```bash
 pnpm start
