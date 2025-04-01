@@ -11,6 +11,17 @@ export interface TicketDetails {
   parentKey?: string;
   sprintId?: string;
 }
+
+export interface TicketUpdateDetails {
+  ticketId: string;
+  summary?: string;
+  description?: string;
+  status?: string;
+  priority?: string;
+  assignee?: string;
+  storyPoints?: number;
+}
+
 export interface JiraBoard {
   id: number;
   self: string;
@@ -39,16 +50,7 @@ export interface JiraBoardResponse {
   values: JiraBoard[];
 }
 
-interface AIResponse {
-  issueType: string;
-  project: string;
-  priority: string;
-  storyPoints: number;
-  description: string;
-  parentKey: string | "None";
-}
-
-export class JiraTicketCreator {
+export class JiraTicket {
   private jiraUrl: string;
   private auth: { username: string; password: string };
   private assigneeAccountId: string;
@@ -115,7 +117,7 @@ export class JiraTicketCreator {
   }
 
 
-  async createJiraTicket(details: TicketDetails): Promise<string | null> {
+  async createJiraTicket(details: TicketDetails): Promise<string | null | object> {
 
     // Find the active Sprint ID
     const sprintId = await this.getCurrentActiveSprint(details.project);
@@ -155,10 +157,76 @@ export class JiraTicketCreator {
           auth: this.auth
         }
       );
-      return (`Issue ${response.data.key} created and assigned to sprint ${sprintId}`);
+      return response.data;
 
     } catch (error) {
       console.error('Error creating JIRA ticket:', error);
+      return null;
+    }
+  }
+
+
+
+  // Add this method to your JiraTicket class
+  async updateJiraTicket(details: TicketUpdateDetails): Promise<string | null> {
+    try {
+      const endpoint = `${this.jiraUrl}/rest/api/3/issue/${details.ticketId}`;
+      const updateFields: any = {};
+
+      if (details.summary) {
+        updateFields.summary = details.summary;
+      }
+      if (details.description) {
+        updateFields.description = this.markdownToAtlassianDoc(details.description);
+      }
+      if (details.priority) {
+        updateFields.priority = { name: details.priority };
+      }
+      if (details.assignee) {
+        updateFields.assignee = { id: details.assignee };
+      }
+      if (details.storyPoints && process.env.JIRA_STORY_POINTS_FIELD_ID) {
+        updateFields[process.env.JIRA_STORY_POINTS_FIELD_ID] = details.storyPoints;
+      }
+
+      // Update the issue fields
+      if (Object.keys(updateFields).length > 0) {
+        await axios.put(
+          endpoint,
+          { fields: updateFields },
+          { headers: this.headers, auth: this.auth }
+        );
+      }
+
+      // Handle status update if provided
+      if (details.status) {
+        const transitionsEndpoint = `${endpoint}/transitions`;
+        const transitions = await axios.get<{ transitions: { id: string; name: string }[] }>(transitionsEndpoint, {
+          headers: this.headers,
+          auth: this.auth
+        });
+        console.log(transitions.data.transitions.map((data) => data));
+
+        const targetTransition = transitions.data.transitions.find(
+          (t: any) => t.to.name.toLowerCase() === details.status?.toLowerCase()
+        );
+        if (targetTransition) {
+          await axios.post(
+            transitionsEndpoint,
+            {
+              transition: { id: targetTransition.id }
+            },
+            { headers: this.headers, auth: this.auth }
+          );
+        } else {
+          throw new Error(`Status transition to '${details.status}' not available`);
+        }
+      }
+
+      return `Successfully updated ticket ${details.ticketId}`;
+    } catch (error) {
+      console.error('Error updating JIRA ticket:', error);
+
       return null;
     }
   }
@@ -169,15 +237,34 @@ export class JiraTicketCreator {
 
     lines.forEach(line => {
       if (line.trim() === '') return;
+
       if (line.startsWith('# ')) {
         content.push({ type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: line.substring(2) }] });
       } else if (line.startsWith('- [ ] ')) {
         content.push({ type: 'taskList', content: [{ type: 'taskItem', attrs: { state: 'TODO' }, content: [{ type: 'text', text: line.substring(6) }] }] });
       } else {
-        content.push({ type: 'paragraph', content: [{ type: 'text', text: line }] });
+        const formattedContent: any[] = [];
+        let match;
+        const boldRegex = /\*\*(.*?)\*\*/g;
+        let lastIndex = 0;
+
+        while ((match = boldRegex.exec(line)) !== null) {
+          if (match.index > lastIndex) {
+            formattedContent.push({ type: 'text', text: line.substring(lastIndex, match.index) });
+          }
+          formattedContent.push({ type: 'text', marks: [{ type: 'strong' }], text: match[1] });
+          lastIndex = match.index + match[0].length;
+        }
+
+        if (lastIndex < line.length) {
+          formattedContent.push({ type: 'text', text: line.substring(lastIndex) });
+        }
+
+        content.push({ type: 'paragraph', content: formattedContent });
       }
     });
 
     return { type: 'doc', version: 1, content };
   }
+
 }

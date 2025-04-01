@@ -5,9 +5,16 @@ import { SendHorizontal, Loader2 } from "lucide-react";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import React from "react";
-
+import { v4 as uuidv4 } from "uuid";
 const defaultPrompts = [
-  "Create ticket for product investigation in BFA",
+  "Create ticket for writing e2e test for Looks Feature in BFA",
+  "Update the description of the ticket to ...",
+  "Update the Story point to 3",
+  "Move ticket to To Do",
+  "Move ticket to In Progress",
+  "Move ticket to In Code Review",
+  "Move ticket to In Stage",
+  "Move ticket On Live",
 ];
 
 interface Message {
@@ -19,9 +26,10 @@ const App = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "👋 Hi! I'm your Jira Ticket Agent. I can help create tickets, assign priorities, and generate descriptions."
+      content: "👋 Hi! I'm your Jira Ticket Agent. I can help create, update your ticket and transition your ticket from one state to another state, assign priorities, and generate descriptions."
     }
   ]);
+  const [threadId] = useState(() => uuidv4());
   const [input, setInput] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -50,7 +58,7 @@ const App = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ 
-          userId: userId, 
+          threadId, // Use the consistent threadId
           prompt: input 
         }),
       });
@@ -62,7 +70,7 @@ const App = () => {
       const data = await response.json();
       const assistantMessage: Message = {
         role: "assistant", 
-        content: data.message || "Please provide a more detailed prompt."
+        content: data.result || "Please provide a more detailed prompt."
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -120,7 +128,7 @@ const App = () => {
           <Button
             key={index}
             onClick={() => setInput(prompt)}
-            className="text-xs"
+             className="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-400"
           >
             {prompt}
           </Button>
