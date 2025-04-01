@@ -1,8 +1,8 @@
-# JIRA AI Agent
+# JIRA AI Agent with Langchain
 
-JIRA AI Agent is a comprehensive solution designed to automate the creation of JIRA tickets using OpenAI's language model. By providing a simple prompt, the agent generates a ticket title, summary, estimates priority, and assigns story points. It intelligently identifies the appropriate JIRA board and sprint, adding the ticket to the current sprint seamlessly. This streamlines the ticket creation process, enhancing efficiency and reducing manual effort.
+JIRA AI Agent is a comprehensive solution designed to automate the process of managing, creating, updating JIRA tickets using OpenAI's language model enhanced with Langchain Framework using Typescript. The agent maintains conversational memory, enabling seamless follow-ups without referencing past tickets. It intelligently identifies the appropriate JIRA board, sprint, and leverages thread-based chat histories to manage interactions for different clients. This streamlines ticket creation, improves efficiency, and reduces manual effort.
 
-![alt text](image.png)
+![alt text](image-1.png)
 
 
 ## Table of Contents
@@ -21,6 +21,10 @@ JIRA AI Agent is a comprehensive solution designed to automate the creation of J
 ## Features
 
 - **Automated Ticket Creation**: Generates JIRA tickets based on user prompts.
+- **Automated Ticket Updating**: Updates JIRA tickets based on user prompts.
+- **Automated Ticket Transition**: Move ticket from one status to other for eg. To do -> In Progress based on user prompts.
+- **Conversational Memory**: Retains context of previous interactions, eliminating the need to reference past tickets in follow-up queries.
+- **Multi-User Support with Threads**: Manages isolated chat histories for different users/clients using thread-based conversations.
 - **AI-Powered Summarization**: Utilizes OpenAI LLM to create concise ticket summaries.
 - **Priority and Story Point Estimation**:  Utilizes OpenAI LLM to assesses and assigns priority levels and story points.
 - **Intelligent Board and Sprint Assignment**: Identifies the relevant JIRA board id and current sprint for the new ticket based on prompt.
@@ -59,6 +63,16 @@ In the root level, run:
 ```bash
 pnpm start
 ```
+Access the frontend at http://localhost:3001 and the backend at http://localhost:5001.
+
+
+### Technical Enhancements
+Langchain Integration: Orchestrates AI workflows for dynamic ticket generation and context-aware responses.
+
+Thread Management: Uses threads to isolate chat histories, enabling multi-user support without data overlap.
+
+Memory Mangament: Save long term memory that is utilize with each new user prompt
+
 
 
 ### Scripts
