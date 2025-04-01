@@ -117,7 +117,9 @@ export class JiraTicket {
   }
 
 
-  async createJiraTicket(details: TicketDetails): Promise<string | null | object> {
+  async createJiraTicket(details: TicketDetails): Promise<string | null | {
+    key: string
+  }> {
 
     // Find the active Sprint ID
     const sprintId = await this.getCurrentActiveSprint(details.project);

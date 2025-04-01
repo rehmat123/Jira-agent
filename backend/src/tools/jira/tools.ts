@@ -62,7 +62,9 @@ export const jiraTicketCreatorTool = new DynamicStructuredTool({
             return 'ticket is not created. something went wrong';
         }
 
-
-        return `Ticket created with details: ${result}`;
+        if (typeof result === 'string') {
+            return `Ticket was not created ${result}`;
+        }
+        return `Ticket created with ticket id ${result.key}`;
     },
 });
