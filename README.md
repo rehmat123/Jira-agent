@@ -1,101 +1,163 @@
-# JIRA AI Agent with Langchain
+# JIRA AI Agent with LangChain
 
-JIRA AI Agent is a comprehensive solution designed to automate the process of managing, creating, updating JIRA tickets using OpenAI's language model enhanced with Langchain Framework using Typescript. The agent maintains conversational memory, enabling seamless follow-ups without referencing past tickets. It intelligently identifies the appropriate JIRA board, sprint, and leverages thread-based chat histories to manage interactions for different clients. This streamlines ticket creation, improves efficiency, and reduces manual effort.
+A sophisticated AI-powered JIRA management system that leverages OpenAI's language models and LangChain framework to automate and streamline JIRA ticket management. This full-stack application provides an intelligent interface for creating, updating, and tracking JIRA tickets through natural language commands.
 
-![alt text](image-1.png)
+![JIRA AI Agent Interface](image-1.png)
 
+## 🚀 Features
 
-## Table of Contents
+### Core Functionality
+- **Intelligent Ticket Management**
+  - Automated ticket creation with AI-powered context understanding
+  - Smart ticket updates and status transitions
+  - Priority and story point estimation using AI
+  - Automated sprint and board assignment
 
-- [Features](#features)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Environment Variables](#environment-variables)
-- [Running the Project](#running-the-project)
-- [Scripts](#scripts)
-- [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
+- **Time Management**
+  - Precise time tracking with detailed logging
+  - Daily time log summaries and analytics
+  - Sprint-based time tracking
+  - Customizable time logging with comments
 
-## Features
+- **Sprint Management**
+  - Real-time sprint ticket overview
+  - Personalized sprint dashboard
+  - Team and individual sprint progress tracking
+  - Automated sprint assignment
 
-- **Automated Ticket Creation**: Generates JIRA tickets based on user prompts.
-- **Automated Ticket Updating**: Updates JIRA tickets based on user prompts.
-- **Automated Ticket Transition**: Move ticket from one status to other for eg. To do -> In Progress based on user prompts.
-- **Conversational Memory**: Retains context of previous interactions, eliminating the need to reference past tickets in follow-up queries.
-- **Multi-User Support with Threads**: Manages isolated chat histories for different users/clients using thread-based conversations.
-- **AI-Powered Summarization**: Utilizes OpenAI LLM to create concise ticket summaries.
-- **Priority and Story Point Estimation**:  Utilizes OpenAI LLM to assesses and assigns priority levels and story points.
-- **Intelligent Board and Sprint Assignment**: Identifies the relevant JIRA board id and current sprint for the new ticket based on prompt.
-- **Full-Stack Application**: Built with a TypeScript React frontend and a Node.js backend, styled using Tailwind CSS.
+### Advanced Capabilities
+- **AI-Powered Intelligence**
+  - Natural language processing for ticket management
+  - Context-aware responses and suggestions
+  - Smart summarization of ticket details
+  - Automated priority and complexity assessment
 
-## Getting Started
+- **User Experience**
+  - Thread-based conversation management
+  - Persistent chat history
+  - Multi-user support with isolated contexts
+  - Real-time updates and notifications
 
-Follow these instructions to set up and run the JIRA AI Agent on your local machine.
+## 🛠️ Technical Stack
 
-### Prerequisites
+- **Frontend**
+  - React with TypeScript
+  - Tailwind CSS for styling
+  - Modern UI/UX design principles
 
-- **Node.js**: Ensure you have Node.js installed. Download it from [nodejs.org](https://nodejs.org/).
-- **pnpm**: Install pnpm globally using npm:
+- **Backend**
+  - Node.js with Express
+  - LangChain framework integration
+  - OpenAI API integration
+  - JIRA REST API integration
 
-  ```bash
-  npm install -g pnpm
+- **Development Tools**
+  - TypeScript for type safety
+  - pnpm for package management
+  - ESLint and Prettier for code quality
+  - Jest for testing
 
-### Installation
-1. **Clone the Repository**:
+## 📋 Prerequisites
+
+- Node.js (v16 or higher)
+- pnpm package manager
+- JIRA account with API access
+- OpenAI API key
+
+## 🚀 Getting Started
+
+1. **Clone the Repository**
    ```bash
    git clone https://github.com/rehmat123/Jira-agent.git
    cd Jira-agent
+   ```
 
-2. **Install Dependencies**:
-Navigate to both the frontend and backend directories and install the required packages:
-    ```bash
-    pnpm install -- on root level
-    cd backend
-    pnpm install
-### Environment Variables
-Create a `.env` file in root level directories. Use the `.env.example` files as templates to configure your environment variables.
+2. **Install Dependencies**
+   ```bash
+   pnpm install
+   ```
 
-## Running the Project
-### Start the Backend and frontend Server Concurently
-In the root level, run:
+3. **Configure Environment Variables**
+   Create a `.env` file based on `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
+   Update the following variables:
+   - `JIRA_URL`
+   - `JIRA_USERNAME`
+   - `JIRA_API_TOKEN`
+   - `JIRA_ASSIGNEE_ACCOUNT_ID`
+   - `OPENAI_API_KEY`
+
+4. **Start the Application**
+   ```bash
+   pnpm start
+   ```
+   The frontend will be available at `http://localhost:3001`
+   The backend will run on `http://localhost:5001`
+
+## 💡 Example Commands
+
+### Ticket Management
 ```bash
-pnpm start
+Create a new ticket for project ABC with title "Implement User Authentication"
+Update ticket ABC-123 status to "In Progress"
 ```
-Access the frontend at http://localhost:3001 and the backend at http://localhost:5001.
 
+### Time Tracking
+```bash
+Log 2 hours to ticket ABC-123 with comment "Implemented new feature"
+Show me how much time I've logged today
+```
 
-### Technical Enhancements
-Langchain Integration: Orchestrates AI workflows for dynamic ticket generation and context-aware responses.
+### Sprint Management
+```bash
+Show me all tickets in the current sprint for project ABC
+Show me my tickets in the current sprint for project ABC
+```
 
-Thread Management: Uses threads to isolate chat histories, enabling multi-user support without data overlap.
+## 📁 Project Structure
 
-Memory Mangament: Save long term memory that is utilize with each new user prompt
+```
+jira-agent/
+├── src/                    # Frontend React application
+│   ├── components/         # React components
+│   ├── App.tsx            # Main application component
+│   └── ...
+├── backend/               # Backend Node.js application
+│   ├── src/
+│   │   ├── tools/        # JIRA integration tools
+│   │   ├── schemas/      # Data validation schemas
+│   │   └── server.ts     # Express server
+│   └── ...
+└── ...
+```
 
+## 🔧 Development Scripts
 
+- `pnpm start`: Start development servers
+- `pnpm build`: Build for production
+- `pnpm test`: Run test suite
+- `pnpm lint`: Run linter
+- `pnpm format`: Format code
 
-### Scripts
+## 🤝 Contributing
 
-- `pnpm start`: Runs both frontend and backend application in development mode concurrently
-- `pnpm build`: Builds the application for production.
-- `pnpm test`: Runs the test suite.
+We welcome contributions! Please follow these steps:
 
-
-## Project Structure
-The project is divided into two main directories:
-- `src`: Contains the React application built with TypeScript and styled using Tailwind CSS.
-- `backend`: Houses the Node.js server that interfaces with JIRA and OpenAI APIs.
-
-## Contributing
-Contributions are welcome! Please follow these steps:
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-Please ensure that your code adheres to the project's coding standards and includes appropriate tests.
+## 📝 License
 
-## License
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- OpenAI for their powerful language models
+- LangChain team for their excellent framework
+- Atlassian for the JIRA API
+- All contributors and users of this project
