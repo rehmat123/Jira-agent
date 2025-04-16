@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "./components/ui/Button"
 import { Input } from "./components/ui/input";
-import { SendHorizontal, Loader2 } from "lucide-react";
+import { SendHorizontal, Loader2, MessageSquare, User, Bot } from "lucide-react";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
+
 const defaultPrompts = [
   "Create ticket for writing e2e test for Looks Feature in BFA",
   "Update the description of the ticket to ...",
@@ -15,6 +16,9 @@ const defaultPrompts = [
   "Move ticket to In Code Review",
   "Move ticket to In Stage",
   "Move ticket On Live",
+  "Get My working hours for today",
+  "List all my tickets",
+  "Add 1 hour to the ticket",
 ];
 
 interface Message {
@@ -26,7 +30,7 @@ const App = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "👋 Hi! I'm your Jira Ticket Agent. I can help create, update your ticket and transition your ticket from one state to another state, assign priorities, and generate descriptions."
+      content: "👋 Hi! I'm your Jira Ticket Agent. I can help you to maintain your JIRA including create, update your ticket and transition your ticket from one state to another state, assign priorities, and generate descriptions, Log hours, Get all working hours for today."
     }
   ]);
   const [threadId] = useState(() => uuidv4());
@@ -58,7 +62,7 @@ const App = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ 
-          threadId, // Use the consistent threadId
+          threadId,
           prompt: input 
         }),
       });
@@ -97,65 +101,97 @@ const App = () => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col p-6 bg-gray-100">
-      <div className="flex-1 overflow-auto mb-4 p-4 bg-white rounded-lg shadow-md">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`flex ${
-              msg.role === "user" ? "justify-end" : "justify-start"
-            } mb-4`}
-          >
-            <div
-              className={`max-w-lg p-3 rounded-lg shadow-md ${
-                msg.role === "user" 
-                  ? "bg-blue-500 text-white" 
-                  : "bg-gray-200 text-black"
-              }`}
-              dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(
-                  marked.parse(msg.content, { async: false })
-                ),
-              }}
-            />
+    <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <MessageSquare className="h-6 w-6 text-blue-600" />
+            <h1 className="text-xl font-semibold text-gray-800">JIRA AI Agent</h1>
           </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+          <div className="text-sm text-gray-500">
+            Thread ID: {threadId}
+          </div>
+        </div>
+      </header>
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        {defaultPrompts.map((prompt, index) => (
-          <Button
-            key={index}
-            onClick={() => setInput(prompt)}
-             className="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-400"
+      {/* Main Content */}
+      <main className="flex-1 max-w-7xl mx-auto w-full p-4 space-y-4">
+        {/* Messages Container */}
+        <div className="flex-1 overflow-auto bg-white rounded-lg shadow-sm p-4 space-y-4">
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`flex ${
+                msg.role === "user" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div className="flex items-start space-x-2 max-w-2xl">
+                {msg.role === "assistant" && (
+                  <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Bot className="h-5 w-5 text-blue-600" />
+                  </div>
+                )}
+                <div
+                  className={`p-3 rounded-lg ${
+                    msg.role === "user" 
+                      ? "bg-blue-600 text-white" 
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(
+                      marked.parse(msg.content, { async: false })
+                    ),
+                  }}
+                />
+                {msg.role === "user" && (
+                  <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <User className="h-5 w-5 text-blue-600" />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Quick Prompts */}
+        <div className="flex flex-wrap gap-2">
+          {defaultPrompts.map((prompt, index) => (
+            <Button
+              key={index}
+              onClick={() => setInput(prompt)}
+              className="bg-white text-black px-4 py-2 rounded-md hover:bg-gray-50 border border-gray-200 shadow-sm text-sm"
+            >
+              {prompt}
+            </Button>
+          ))}
+        </div>
+
+        {/* Input Area */}
+        <div className="flex gap-2 bg-white p-4 rounded-lg shadow-sm">
+          <Input
+            value={input}
+            disabled={loading}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type your message here..."
+            onKeyDown={handleKeyDown}
+            className="flex-1"
+          />
+          <Button 
+            onClick={handleSend} 
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2"
           >
-            {prompt}
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <SendHorizontal className="h-4 w-4" />
+            )}
+            <span>Send</span>
           </Button>
-        ))}
-      </div>
-
-      <div className="flex gap-2">
-        <Input
-          value={input}
-          disabled={loading}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Create a Jira ticket..."
-          onKeyDown={handleKeyDown}
-        />
-        <Button 
-          onClick={handleSend} 
-          disabled={loading}
-          className="flex items-center"
-        >
-          {loading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <SendHorizontal className="mr-2 h-4 w-4" />
-          )}
-          Send
-        </Button>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };
