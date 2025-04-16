@@ -2,7 +2,7 @@
 
 A sophisticated AI-powered JIRA management system that leverages OpenAI's language models and LangChain framework to automate and streamline JIRA ticket management. This full-stack application provides an intelligent interface for creating, updating, and tracking JIRA tickets through natural language commands.
 
-![JIRA AI Agent Interface](image-1.png)
+![JIRA AI Agent Interface](image.png)
 
 ## 🚀 Features
 
