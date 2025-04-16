@@ -50,6 +50,42 @@ export interface JiraBoardResponse {
   values: JiraBoard[];
 }
 
+interface JiraWorklogResponse {
+    worklogs: Array<{
+        timeSpentSeconds: number;
+        timeSpent: string;
+        started: string;
+        comment?: string;
+    }>;
+}
+
+interface JiraSearchResponse {
+    issues: Array<{
+        key: string;
+        fields: {
+            summary: string;
+        };
+    }>;
+}
+
+interface JiraSprintTicketsResponse {
+    issues: Array<{
+        key: string;
+        fields: {
+            summary: string;
+            status: {
+                name: string;
+            };
+            assignee?: {
+                displayName: string;
+            };
+            timetracking?: {
+                timeSpent: string;
+            };
+        };
+    }>;
+}
+
 export class JiraTicket {
   private jiraUrl: string;
   private auth: { username: string; password: string };
@@ -269,4 +305,146 @@ export class JiraTicket {
     return { type: 'doc', version: 1, content };
   }
 
+  async addWorklog(ticketId: string, timeSpentSeconds: number, comment?: string): Promise<string | null> {
+    try {
+      const endpoint = `${this.jiraUrl}/rest/api/3/issue/${ticketId}/worklog`;
+      const payload = {
+        timeSpentSeconds,
+        comment: comment ? {
+          type: "doc",
+          version: 1,
+          content: [{
+            type: "paragraph",
+            content: [{
+              type: "text",
+              text: comment
+            }]
+          }]
+        } : undefined
+      };
+
+      const response = await axios.post(endpoint, payload, {
+        headers: this.headers,
+        auth: this.auth
+      });
+
+      if (response.status === 201) {
+        return `Successfully logged ${timeSpentSeconds / 3600} hours to ${ticketId}`;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error logging work:', error);
+      return null;
+    }
+  }
+
+  async getSprintTickets(projectKey: string): Promise<any[] | null> {
+    try {
+      const sprintId = await this.getCurrentActiveSprint(projectKey);
+      if (!sprintId) {
+        return null;
+      }
+
+      const response = await axios.get<JiraSprintTicketsResponse>(
+        `${this.jiraUrl}/rest/agile/1.0/sprint/${sprintId}/issue`,
+        {
+          headers: this.headers,
+          auth: this.auth,
+          params: {
+            fields: 'summary,status,assignee,timetracking'
+          }
+        }
+      );
+
+      return response.data.issues;
+    } catch (error) {
+      console.error('Error fetching sprint tickets:', error);
+      return null;
+    }
+  }
+
+  async getDailyTimeLog(date?: string): Promise<any | null> {
+    try {
+      const searchDate = date || new Date().toISOString().split('T')[0];
+      const jql = `worklogDate = "${searchDate}" AND worklogAuthor = currentUser()`;
+      
+      const response = await axios.post<JiraSearchResponse>(
+        `${this.jiraUrl}/rest/api/3/search`,
+        {
+          jql,
+          fields: ['summary', 'worklog']
+        },
+        {
+          headers: this.headers,
+          auth: this.auth
+        }
+      );
+
+      const issues = response.data.issues;
+      let totalSeconds = 0;
+      const worklogEntries: any[] = [];
+
+      for (const issue of issues) {
+        const worklogResponse = await axios.get<JiraWorklogResponse>(
+          `${this.jiraUrl}/rest/api/3/issue/${issue.key}/worklog`,
+          {
+            headers: this.headers,
+            auth: this.auth
+          }
+        );
+
+        const todaysLogs = worklogResponse.data.worklogs.filter((log) => 
+          log.started.startsWith(searchDate)
+        );
+
+        for (const log of todaysLogs) {
+          totalSeconds += log.timeSpentSeconds;
+          worklogEntries.push({
+            issueKey: issue.key,
+            issueSummary: issue.fields.summary,
+            timeSpent: log.timeSpent,
+            comment: log.comment
+          });
+        }
+      }
+
+      return {
+        date: searchDate,
+        totalHours: (totalSeconds / 3600).toFixed(2),
+        entries: worklogEntries
+      };
+    } catch (error) {
+      console.error('Error fetching daily time log:', error);
+      return null;
+    }
+  }
+
+  async getUserSprintTickets(projectKey: string, assignee?: string): Promise<any[] | null> {
+    try {
+      const sprintId = await this.getCurrentActiveSprint(projectKey);
+      if (!sprintId) {
+        return null;
+      }
+
+      // If assignee is not provided, use the current user's account ID
+      const assigneeId = assignee || this.assigneeAccountId;
+
+      const response = await axios.get<JiraSprintTicketsResponse>(
+        `${this.jiraUrl}/rest/agile/1.0/sprint/${sprintId}/issue`,
+        {
+          headers: this.headers,
+          auth: this.auth,
+          params: {
+            fields: 'summary,status,assignee,timetracking',
+            jql: `assignee = "${assigneeId}"`
+          }
+        }
+      );
+
+      return response.data.issues;
+    } catch (error) {
+      console.error('Error fetching user sprint tickets:', error);
+      return null;
+    }
+  }
 }

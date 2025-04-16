@@ -1,5 +1,12 @@
 import { DynamicStructuredTool } from "@langchain/core/tools";
-import { jiraTicketSchema, updateTicketSchema } from "../../schemas/jira.schema";
+import {
+    jiraTicketSchema,
+    updateTicketSchema,
+    timeTrackingSchema,
+    sprintTicketsSchema,
+    timeLogSummarySchema,
+    userSprintTicketsSchema
+} from "../../schemas/jira.schema";
 import { z } from "zod";
 import { JiraTicket, TicketUpdateDetails } from "./jiraTicket";
 import dotenv from 'dotenv';
@@ -66,5 +73,85 @@ export const jiraTicketCreatorTool = new DynamicStructuredTool({
             return `Ticket was not created ${result}`;
         }
         return `Ticket created with ticket id ${result.key}`;
+    },
+});
+
+export const jiraTimeTrackingTool = new DynamicStructuredTool({
+    name: "logTimeToJiraTicket",
+    description: "Log time spent working on a Jira ticket",
+    schema: timeTrackingSchema,
+    func: async (input: z.infer<typeof timeTrackingSchema>) => {
+        const result = await jiraTicket.addWorklog(
+            input.ticketId,
+            input.timeSpentSeconds,
+            input.comment
+        );
+
+        if (!result) {
+            return 'Failed to log time to the ticket';
+        }
+
+        return result;
+    },
+});
+
+export const jiraSprintTicketsTool = new DynamicStructuredTool({
+    name: "listSprintTickets",
+    description: "List all tickets in the current active sprint",
+    schema: sprintTicketsSchema,
+    func: async (input: z.infer<typeof sprintTicketsSchema>) => {
+        const tickets = await jiraTicket.getSprintTickets(input.projectKey);
+
+        if (!tickets) {
+            return 'No active sprint found or error fetching tickets';
+        }
+
+        const ticketList = tickets.map((ticket) => ({
+            key: ticket.key,
+            summary: ticket.fields.summary,
+            status: ticket.fields.status.name,
+            assignee: ticket.fields.assignee?.displayName || 'Unassigned',
+            timeTracking: ticket.fields.timetracking?.timeSpent || 'No time logged'
+        }));
+
+        return JSON.stringify(ticketList, null, 2);
+    },
+});
+
+export const jiraTimeLogSummaryTool = new DynamicStructuredTool({
+    name: "getDailyTimeLogSummary",
+    description: "Get a summary of time logged for a specific date (defaults to today)",
+    schema: timeLogSummarySchema,
+    func: async (input: z.infer<typeof timeLogSummarySchema>) => {
+        const summary = await jiraTicket.getDailyTimeLog(input.date);
+
+        if (!summary) {
+            return 'Failed to fetch time log summary';
+        }
+
+        return JSON.stringify(summary, null, 2);
+    },
+});
+
+export const jiraUserSprintTicketsTool = new DynamicStructuredTool({
+    name: "listUserSprintTickets",
+    description: "List all tickets assigned to a current user in the current active sprint",
+    schema: userSprintTicketsSchema,
+    func: async (input: z.infer<typeof userSprintTicketsSchema>) => {
+        const tickets = await jiraTicket.getUserSprintTickets(input.projectKey, input.assignee);
+
+        if (!tickets) {
+            return 'No active sprint found or error fetching tickets';
+        }
+
+        const ticketList = tickets.map((ticket) => ({
+            key: ticket.key,
+            summary: ticket.fields.summary,
+            status: ticket.fields.status.name,
+            assignee: ticket.fields.assignee?.displayName || 'Unassigned',
+            timeTracking: ticket.fields.timetracking?.timeSpent || 'No time logged'
+        }));
+
+        return JSON.stringify(ticketList, null, 2);
     },
 });

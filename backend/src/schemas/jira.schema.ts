@@ -28,3 +28,22 @@ export const updateTicketSchema = z.object({
     storyPoints: z.string().optional().describe("New story point for the ticket"),
     assignee: z.string().optional().describe("Username of the person to assign the ticket to")
 });
+
+export const timeTrackingSchema = z.object({
+    ticketId: z.string().describe("The Jira ticket ID to log time against"),
+    timeSpentSeconds: z.number().describe("Time spent in seconds"),
+    comment: z.string().optional().describe("Optional comment about the work done"),
+});
+
+export const sprintTicketsSchema = z.object({
+    projectKey: z.string().describe("The project key to get sprint tickets from"),
+});
+
+export const timeLogSummarySchema = z.object({
+    date: z.string().optional().describe("Optional date in YYYY-MM-DD format. Defaults to today"),
+});
+
+export const userSprintTicketsSchema = z.object({
+    projectKey: z.string().describe("The project key to get sprint tickets from"),
+    assignee: z.string().optional().describe("Optional assignee to filter tickets. Defaults to current user if not specified"),
+});

@@ -8,7 +8,14 @@ import { AgentExecutor } from 'langchain/agents';
 import { ChatMessageHistory } from 'langchain/stores/message/in_memory';
 import { RunnableWithMessageHistory } from '@langchain/core/runnables';
 import { systemPrompt } from './templates/system';
-import { jiraTicketCreatorTool, jiraTicketUpdateTool } from './tools/jira/tools';
+import {
+    jiraTicketCreatorTool,
+    jiraTicketUpdateTool,
+    jiraTimeTrackingTool,
+    jiraSprintTicketsTool,
+    jiraTimeLogSummaryTool,
+    jiraUserSprintTicketsTool
+} from './tools/jira/tools';
 
 dotenv.config();
 
@@ -52,7 +59,14 @@ app.post('/api/chat', async (req: Request, res: Response) => {
         }
 
 
-        const toolKit = [jiraTicketCreatorTool, jiraTicketUpdateTool];
+        const toolKit = [
+            jiraTicketCreatorTool,
+            jiraTicketUpdateTool,
+            jiraTimeTrackingTool,
+            jiraSprintTicketsTool,
+            jiraTimeLogSummaryTool,
+            jiraUserSprintTicketsTool
+        ];
 
         const agent = await createOpenAIFunctionsAgent({
             llm: model,
