@@ -17,7 +17,7 @@ const defaultPrompts = [
   "Move ticket to In Stage",
   "Move ticket On Live",
   "Get My working hours for today",
-  "List all my tickets",
+  "List all my tickets in <projectKey>",
   "Add 1 hour to the ticket",
 ];
 
