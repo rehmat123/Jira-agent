@@ -8,7 +8,7 @@ import React from "react";
 import { v4 as uuidv4 } from "uuid";
 
 const defaultPrompts = [
-  "Create ticket for writing e2e test for Looks Feature in BFA",
+  "Create ticket for writing e2e test for Looks Feature",
   "Update the description of the ticket to ...",
   "Update the Story point to 3",
   "Move ticket to To Do",
